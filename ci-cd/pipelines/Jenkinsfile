@@ -1,0 +1,22 @@
+commitHash = ""
+branch = ""
+
+node() {
+    stage('init') {
+        checkout scm
+
+        def commitInfo = sh (label: 'Get commit info', returnStdout: true, script: 'git log -n 1 --format="%H;%T;%an;%ae;%s"')
+        sh "printenv"
+
+        echo "commitInfo: ${commitInfo}"
+    }
+
+    stage('test') {
+        echo "to be implemented"
+        /*dir() {
+            withEnv() { // set PYTHONPATH
+                sh 'python3 -m unittest'
+            }
+        }*/
+    }
+}
