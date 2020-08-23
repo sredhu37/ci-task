@@ -3,7 +3,7 @@ from src.main.myMath import *
 
 
 def test_add():
-    assert 4 + 5 == add(4, 5)
+    assert 9 == add(4, 5)
 
 
 def test_add_type_error():
@@ -12,7 +12,7 @@ def test_add_type_error():
 
 
 def test_subtract():
-    assert 4 - 5 == subtract(4, 5)
+    assert -1 == subtract(4, 5)
 
 
 def test_subtract_type_error():
@@ -21,7 +21,7 @@ def test_subtract_type_error():
 
 
 def test_multiply():
-    assert 4 * 5 == multiply(4, 5)
+    assert 20 == multiply(4, 5)
 
 
 def test_multiply_string_integer():
@@ -34,7 +34,7 @@ def test_multiply_type_error():
 
 
 def test_divide():
-    assert 4/5 == divide(4, 5)
+    assert 0.8 == divide(4, 5)
 
 
 def test_divide_type_error():
