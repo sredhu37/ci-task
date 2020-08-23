@@ -73,7 +73,7 @@ def deploy() {
         build (
             job: 'ci-task-deployment',
             parameters: [
-                string(name: 'BRANCH_TO_DEPLOY', value: commitHash),
+                string(name: 'COMMIT_TO_DEPLOY', value: commitHash),
                 string(name: 'BRANCH_NAME', value: env.BRANCH_NAME)
             ]
         )
