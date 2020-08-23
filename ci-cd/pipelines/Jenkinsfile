@@ -6,7 +6,12 @@ node() {
         timeout(20) {
             init()
             try {
-                test()
+                parallel unittest: {
+                    unitTests()
+                }, secondBranch: {
+                    integrationTests()
+                },
+                failFast: true
             } finally {
                 publishTestResults()
             }
@@ -39,13 +44,19 @@ def init() {
     }
 }
 
-def test() {
+def unitTests() {
     utils.stageWithGHStatusCheck('unit tests') {
         pythonImage.inside {
             withEnv(["PYTHONPATH=${pwd()}"]) {
                 sh 'pytest --junit-xml="pytest_results.xml"'
             }
         }
+    }
+}
+
+def integrationTests() {
+    utils.stageWithGHStatusCheck('integration tests') {
+        echo "To be implemented!"
     }
 }
 
