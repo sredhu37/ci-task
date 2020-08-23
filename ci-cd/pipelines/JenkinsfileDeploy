@@ -1,5 +1,59 @@
+utils = null
+
 node() {
     try {
-        init()
+        timeout(20) {
+            init()
+            pushImageToDockerHub()
+        }
+        currentBuild.result = 'SUCCESS'
+    } catch(e) {
+        currentBuild.result = 'FAILURE'
+    }
+}
+
+def init() {
+    stage('init') {
+        properties([
+            [$class: 'JiraProjectProperty'],
+            parameters([
+                string(
+                    defaultValue: 'master',
+                    description: 'Pass commitID to deploy. You can pass a branch name as well.',
+                    name: 'COMMIT_TO_DEPLOY',
+                    trim: true
+                )
+            ])
+        ])
+
+        checkout([
+            $class: 'GitSCM',
+            branches: [[name: params.COMMIT_TO_DEPLOY]],
+            userRemoteConfigs: [[
+                credentialsId: 'sunny-github-credentials',
+                url: 'https://github.com/sredhu37/ci-task.git'
+            ]]
+        ])
+        utils = load "./ci-cd/pipelines/utils.groovy"
+
+        def commitInfo = (sh (label: 'Get commit info', returnStdout: true, script: 'git log -n 1 --format="%H;%T;%an;%ae;%s"')).trim().split(';')
+        utils.commitHash = commitInfo[0]
+
+        sh "printenv"
+        echo "commitHash: ${utils.commitHash}"
+    }
+}
+
+def pushImageToDockerHub() {
+    utils.stageWithGHStatusCheck('push image') {
+        def branch = (env.BRANCH_NAME).replaceAll('/','-')
+        def appImageName = "sunnyredhu/ci-task:${branch}-${commitHash}"
+        echo "Building image: ${appImageName}..."
+        def appImage = docker.build(appImageName)
+        echo "Done.\nPushing image: ${appImageName}..."
+        docker.withRegistry('', "sunny-dockerhub-credentials") {
+            appImage.push()
+        }
+        echo "Done."
     }
 }

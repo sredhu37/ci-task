@@ -3,7 +3,7 @@ pythonImage = null
 
 node() {
     try {
-        timeout(20) {
+        timeout(30) {
             init()
             try {
                 parallel unittest: {
@@ -16,8 +16,9 @@ node() {
                 publishTestResults()
             }
 
-            pushImageToDockerHub()
+            deploy()
         }
+
         currentBuild.result = 'SUCCESS'
     } catch(e) {
         currentBuild.result = 'FAILURE'
@@ -67,17 +68,12 @@ def publishTestResults() {
     }
 }
 
-def pushImageToDockerHub() {
-    utils.stageWithGHStatusCheck('push image') {
-        def branch = (env.BRANCH_NAME).replaceAll('/','-')
-        def appImageName = "sunnyredhu/ci-task:${branch}-${commitHash}"
-        echo "Building image: ${appImageName}..."
-        def appImage = docker.build(appImageName)
-        echo "Done.\nPushing image: ${appImageName}..."
-        docker.withRegistry('', "sunny-dockerhub-credentials") {
-            appImage.push()
-        }
-        echo "Done."
+def deploy() {
+    stage('deploy') {
+        build (
+            job: 'ci-task-deployment',
+            parameters: [string(name: 'BRANCH_TO_DEPLOY', value: 'master')]
+        )
     }
 }
 
