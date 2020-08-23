@@ -6,7 +6,12 @@ node() {
         timeout(20) {
             init()
             try {
-                test()
+                parallel unittest: {
+                    unitTests()
+                }, ittest: {
+                    integrationTests()
+                },
+                failFast: true
             } finally {
                 publishTestResults()
             }
@@ -34,18 +39,24 @@ def init() {
 
         echo "Building python runtime image..."
         dir("ci-cd/images/python-runtime") {
-            pythonImage = docker.build("python-runtime:${env.BRANCH_NAME}")
+            pythonImage = docker.build("python-runtime")
         }
     }
 }
 
-def test() {
+def unitTests() {
     utils.stageWithGHStatusCheck('unit tests') {
         pythonImage.inside {
             withEnv(["PYTHONPATH=${pwd()}"]) {
                 sh 'pytest --junit-xml="pytest_results.xml"'
             }
         }
+    }
+}
+
+def integrationTests() {
+    utils.stageWithGHStatusCheck('integration tests') {
+        echo "To be implemented!"
     }
 }
 
@@ -57,7 +68,7 @@ def publishTestResults() {
 
 def pushImageToDockerHub() {
     utils.stageWithGHStatusCheck('push image') {
-        def appImageName = "sunnyredhu/ci-task:${env.BRANCH_NAME}-${commitHash}"
+        def appImageName = "sunnyredhu/ci-task:${commitHash}"
         echo "Building image: ${appImageName}..."
         def appImage = docker.build(appImageName)
         echo "Done.\nPushing image: ${appImageName}..."
