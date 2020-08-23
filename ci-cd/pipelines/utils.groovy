@@ -6,6 +6,7 @@ def setGHStatusCheck(String checkName, String status, String description="No des
     httpRequest (
         acceptType: 'APPLICATION_JSON',
         consoleLogResponseBody: true,
+        authentication: 'sunny-github-credentials',
         contentType: 'APPLICATION_JSON',
         httpMode: 'POST',
         requestBody: """{
@@ -21,16 +22,16 @@ def setGHStatusCheck(String checkName, String status, String description="No des
 }
 
 def stageWithGHStatusCheck(String stageName, Closure closureFunction) {
-    String stageStatus = 'PENDING'
+    String stageStatus = 'pending'
 
     try {
         stage(stageName) {
             setGHStatusCheck(stageName, stageStatus, "Execution has started...")
             closureFunction()
         }
-        stageStatus = 'SUCCESS'
+        stageStatus = 'success'
     } catch(exc) {
-        stageStatus = 'FAILURE'
+        stageStatus = 'failure'
     } finally {
         setGHStatusCheck(stageName, stageStatus)
     }
