@@ -1,0 +1,77 @@
+utils = null
+pythonImage = null
+
+node() {
+    try {
+        timeout(20) {
+            init()
+            try {
+                test()
+            } finally {
+                publishTestResults()
+            }
+
+            pushImageToDockerHub()
+        }
+        currentBuild.result = 'SUCCESS'
+    } catch(e) {
+        currentBuild.result = 'FAILURE'
+    } finally {
+        setStatusBadge(currentBuild.result)
+    }
+}
+
+// Stages begin here
+
+def init() {
+    stage('init') {
+        checkout scm
+        utils = load "./ci-cd/pipelines/utils.groovy"
+
+        def commitInfo = (sh (label: 'Get commit info', returnStdout: true, script: 'git log -n 1 --format="%H;%T;%an;%ae;%s"')).trim().split(';')
+        utils.commitHash = commitInfo[0]
+
+        sh "printenv"
+        echo "commitHash: ${utils.commitHash}"
+
+        echo "Building python runtime image..."
+        dir("ci-cd/images/python-runtime") {
+            pythonImage = docker.build("python-runtime:${env.BRANCH_NAME}")
+        }
+    }
+}
+
+def test() {
+    utils.stageWithGHStatusCheck('unit tests') {
+        pythonImage.inside {
+            withEnv(["PYTHONPATH=${pwd()}"]) {
+                sh 'pytest --junit-xml="pytest_results.xml"'
+            }
+        }
+    }
+}
+
+def publishTestResults() {
+    utils.stageWithGHStatusCheck('publish unit test results') {
+        junit 'pytest_results.xml'
+    }
+}
+
+def pushImageToDockerHub() {
+    utils.stageWithGHStatusCheck('push image') {
+        echo "To be implemented"
+    }
+}
+
+def setStatusBadge(def buildResult) {
+    //if(env.BRANCH_NAME == 'master') {
+        def buildBadge = addEmbeddableBadgeConfiguration(id: "build", subject: "build:${utils.commitHash}")
+        def status = buildResult == 'SUCCESS' ? 'passing' : 'failing'
+
+        buildBadge.setStatus(status)
+    //} else {
+    //    echo "Skipping the creation of status badge=> Non master branch."
+    //}
+}
+
+// Stages end here
