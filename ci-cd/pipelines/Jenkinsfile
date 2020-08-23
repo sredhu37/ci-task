@@ -1,22 +1,37 @@
 commitHash = ""
-branch = ""
+pythonImage = null
 
 node() {
+    timeout(20) {
+        init()
+        test()
+    }
+}
+
+def init() {
     stage('init') {
         checkout scm
 
-        def commitInfo = sh (label: 'Get commit info', returnStdout: true, script: 'git log -n 1 --format="%H;%T;%an;%ae;%s"')
+        def commitInfo = (sh (label: 'Get commit info', returnStdout: true, script: 'git log -n 1 --format="%H;%T;%an;%ae;%s"')).trim().split(';')
+        commitHash = commitInfo[0]
+
         sh "printenv"
-
-        echo "commitInfo: ${commitInfo}"
+        echo "commitHash: ${commitHash}"
     }
+}
 
+def test() {
     stage('test') {
-        echo "to be implemented"
-        /*dir() {
-            withEnv() { // set PYTHONPATH
-                sh 'python3 -m unittest'
-            }
-        }*/
+        dir("ci-cd/images/runtime") {
+            pythonImage = docker.build("python-runtime:${env.BRANCH_NAME}${commitHash}")
+        }
+
+        pythonImage.inside {
+            sh '''
+                pwd
+                ls -al
+                pytest
+            '''
+        }
     }
 }
