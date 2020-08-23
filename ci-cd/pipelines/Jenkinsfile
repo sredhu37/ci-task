@@ -16,8 +16,6 @@ node() {
         currentBuild.result = 'SUCCESS'
     } catch(e) {
         currentBuild.result = 'FAILURE'
-    } finally {
-        setStatusBadge(currentBuild.result)
     }
 }
 
@@ -61,17 +59,6 @@ def pushImageToDockerHub() {
     utils.stageWithGHStatusCheck('push image') {
         echo "To be implemented"
     }
-}
-
-def setStatusBadge(def buildResult) {
-    //if(env.BRANCH_NAME == 'master') {
-        def buildBadge = addEmbeddableBadgeConfiguration(id: "build", subject: "build:${utils.commitHash}")
-        def status = buildResult == 'SUCCESS' ? 'passing' : 'failing'
-
-        buildBadge.setStatus(status)
-    //} else {
-    //    echo "Skipping the creation of status badge=> Non master branch."
-    //}
 }
 
 // Stages end here
