@@ -17,15 +17,16 @@ def init() {
 
         sh "printenv"
         echo "commitHash: ${commitHash}"
+
+        echo "Building python runtime image..."
+        dir("ci-cd/images/python-runtime") {
+            pythonImage = docker.build("python-runtime:${env.BRANCH_NAME}${commitHash}")
+        }
     }
 }
 
 def test() {
     stage('test') {
-        dir("ci-cd/images/runtime") {
-            pythonImage = docker.build("python-runtime:${env.BRANCH_NAME}${commitHash}")
-        }
-
         pythonImage.inside {
             sh '''
                 pwd
