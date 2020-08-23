@@ -1,20 +1,37 @@
+utils = null
 commitHash = ""
 pythonImage = null
 
 node() {
-    timeout(20) {
-        init()
-        try {
-            test()
-        } finally {
-            publishTestResults()
+    try {
+        timeout(20) {
+            init()
+            try {
+                test()
+            } finally {
+                publishTestResults()
+            }
+
+            pushImageToDockerHub()
+        }
+        currentBuild.result = 'SUCCESS'
+    } catch(e) {
+        currentBuild.result = 'FAILURE'
+    } finally {
+        if(env.BRANCH_NAME == 'master') {
+            setStatusBadge()
+        } else {
+            echo "Skipping the creation of status badge=> Non master branch."
         }
     }
 }
 
+// Stages begin here
+
 def init() {
     stage('init') {
         checkout scm
+        utils = load "./ci-cd/pipelines/utils.groovy"
 
         def commitInfo = (sh (label: 'Get commit info', returnStdout: true, script: 'git log -n 1 --format="%H;%T;%an;%ae;%s"')).trim().split(';')
         commitHash = commitInfo[0]
@@ -30,7 +47,7 @@ def init() {
 }
 
 def test() {
-    stage('unit tests') {
+    utils.stageWithGHStatusCheck('unit tests') {
         pythonImage.inside {
             withEnv(["PYTHONPATH=${pwd()}"]) {
                 sh 'pytest --junit-xml="pytest_results.xml"'
@@ -40,7 +57,19 @@ def test() {
 }
 
 def publishTestResults() {
-    stage('publish unit test results') {
+    utils.stageWithGHStatusCheck('publish unit test results') {
         junit 'pytest_results.xml'
     }
 }
+
+def pushImageToDockerHub() {
+    utils.stageWithGHStatusCheck('push image') {
+        echo "To be implemented"
+    }
+}
+
+def setStatusBadge() {
+    echo "To be implemented"
+}
+
+// Stages end here
