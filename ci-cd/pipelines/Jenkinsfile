@@ -72,7 +72,10 @@ def deploy() {
     stage('deploy') {
         build (
             job: 'ci-task-deployment',
-            parameters: [string(name: 'BRANCH_TO_DEPLOY', value: 'master')]
+            parameters: [
+                string(name: 'BRANCH_TO_DEPLOY', value: commitHash),
+                string(name: 'BRANCH_NAME', value: env.BRANCH_NAME)
+            ]
         )
     }
 }

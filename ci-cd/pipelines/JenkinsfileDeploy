@@ -22,6 +22,12 @@ def init() {
                     description: 'Pass commitID to deploy. You can pass a branch name as well.',
                     name: 'COMMIT_TO_DEPLOY',
                     trim: true
+                ),
+                string(
+                    defaultValue: 'master',
+                    description: 'Branch name will be used for the image tag.',
+                    name: 'BRANCH_NAME',
+                    trim: true
                 )
             ])
         ])
@@ -46,7 +52,7 @@ def init() {
 
 def pushImageToDockerHub() {
     utils.stageWithGHStatusCheck('push image') {
-        def branch = (env.BRANCH_NAME).replaceAll('/','-')
+        def branch = (params.BRANCH_NAME).replaceAll('/','-')
         def appImageName = "sunnyredhu/ci-task:${branch}-${commitHash}"
         echo "Building image: ${appImageName}..."
         def appImage = docker.build(appImageName)
