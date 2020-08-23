@@ -39,7 +39,8 @@ def init() {
 
         echo "Building python runtime image..."
         dir("ci-cd/images/python-runtime") {
-            pythonImage = docker.build("python-runtime")
+            def tag = (env.BRANCH_NAME).replaceAll('/','-')
+            pythonImage = docker.build("python-runtime:${tag}")
         }
     }
 }
@@ -68,7 +69,8 @@ def publishTestResults() {
 
 def pushImageToDockerHub() {
     utils.stageWithGHStatusCheck('push image') {
-        def appImageName = "sunnyredhu/ci-task:${commitHash}"
+        def branch = (env.BRANCH_NAME).replaceAll('/','-')
+        def appImageName = "sunnyredhu/ci-task:${branch}-${commitHash}"
         echo "Building image: ${appImageName}..."
         def appImage = docker.build(appImageName)
         echo "Done.\nPushing image: ${appImageName}..."
