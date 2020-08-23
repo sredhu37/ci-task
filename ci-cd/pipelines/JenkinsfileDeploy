@@ -41,19 +41,13 @@ def init() {
             ]]
         ])
         utils = load "./ci-cd/pipelines/utils.groovy"
-
-        def commitInfo = (sh (label: 'Get commit info', returnStdout: true, script: 'git log -n 1 --format="%H;%T;%an;%ae;%s"')).trim().split(';')
-        utils.commitHash = commitInfo[0]
-
-        sh "printenv"
-        echo "commitHash: ${utils.commitHash}"
     }
 }
 
 def pushImageToDockerHub() {
     utils.stageWithGHStatusCheck('push image') {
         def branch = (params.BRANCH_NAME).replaceAll('/','-')
-        def appImageName = "sunnyredhu/ci-task:${branch}-${commitHash}"
+        def appImageName = "sunnyredhu/ci-task:${branch}-${params.COMMIT_TO_DEPLOY}"
         echo "Building image: ${appImageName}..."
         def appImage = docker.build(appImageName)
         echo "Done.\nPushing image: ${appImageName}..."
