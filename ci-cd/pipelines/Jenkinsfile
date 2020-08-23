@@ -1,5 +1,4 @@
 utils = null
-commitHash = ""
 pythonImage = null
 
 node() {
@@ -30,10 +29,10 @@ def init() {
         utils = load "./ci-cd/pipelines/utils.groovy"
 
         def commitInfo = (sh (label: 'Get commit info', returnStdout: true, script: 'git log -n 1 --format="%H;%T;%an;%ae;%s"')).trim().split(';')
-        commitHash = commitInfo[0]
+        utils.commitHash = commitInfo[0]
 
         sh "printenv"
-        echo "commitHash: ${commitHash}"
+        echo "commitHash: ${utils.commitHash}"
 
         echo "Building python runtime image..."
         dir("ci-cd/images/python-runtime") {
@@ -66,7 +65,7 @@ def pushImageToDockerHub() {
 
 def setStatusBadge(def buildResult) {
     //if(env.BRANCH_NAME == 'master') {
-        def buildBadge = addEmbeddableBadgeConfiguration(id: "build", subject: "build:${commitHash}")
+        def buildBadge = addEmbeddableBadgeConfiguration(id: "build", subject: "build:${utils.commitHash}")
         def status = buildResult == 'SUCCESS' ? 'passing' : 'failing'
 
         buildBadge.setStatus(status)
