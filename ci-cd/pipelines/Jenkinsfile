@@ -18,11 +18,7 @@ node() {
     } catch(e) {
         currentBuild.result = 'FAILURE'
     } finally {
-        if(env.BRANCH_NAME == 'master') {
-            setStatusBadge()
-        } else {
-            echo "Skipping the creation of status badge=> Non master branch."
-        }
+        setStatusBadge(currentBuild.result)
     }
 }
 
@@ -68,8 +64,15 @@ def pushImageToDockerHub() {
     }
 }
 
-def setStatusBadge() {
-    echo "To be implemented"
+def setStatusBadge(def buildResult) {
+    //if(env.BRANCH_NAME == 'master') {
+        def buildBadge = addEmbeddableBadgeConfiguration(id: "build", subject: "build:${commitHash}")
+        def status = buildResult == 'SUCCESS' ? 'passing' : 'failing'
+
+        buildBadge.setStatus(status)
+    //} else {
+    //    echo "Skipping the creation of status badge=> Non master branch."
+    //}
 }
 
 // Stages end here
