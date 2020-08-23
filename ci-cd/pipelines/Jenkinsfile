@@ -8,7 +8,7 @@ node() {
             try {
                 parallel unittest: {
                     unitTests()
-                }, secondBranch: {
+                }, ittest: {
                     integrationTests()
                 },
                 failFast: true
@@ -39,7 +39,7 @@ def init() {
 
         echo "Building python runtime image..."
         dir("ci-cd/images/python-runtime") {
-            pythonImage = docker.build("python-runtime:${env.BRANCH_NAME}")
+            pythonImage = docker.build("python-runtime")
         }
     }
 }
@@ -68,7 +68,7 @@ def publishTestResults() {
 
 def pushImageToDockerHub() {
     utils.stageWithGHStatusCheck('push image') {
-        def appImageName = "sunnyredhu/ci-task:${env.BRANCH_NAME}-${commitHash}"
+        def appImageName = "sunnyredhu/ci-task:${commitHash}"
         echo "Building image: ${appImageName}..."
         def appImage = docker.build(appImageName)
         echo "Done.\nPushing image: ${appImageName}..."
