@@ -57,9 +57,9 @@ def publishTestResults() {
 
 def pushImageToDockerHub() {
     utils.stageWithGHStatusCheck('push image') {
-        def appImageName = "ci-task:${env.BRANCH_NAME}-${commitHash}"
+        def appImageName = "sunnyredhu/ci-task:${env.BRANCH_NAME}-${commitHash}"
         echo "Building image: ${appImageName}..."
-        def appImage = docker.build()
+        def appImage = docker.build(appImageName)
         echo "Done.\nPushing image: ${appImageName}..."
         docker.withRegistry('', "sunny-dockerhub-credentials") {
             appImage.push()
