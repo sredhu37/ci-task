@@ -4,7 +4,11 @@ pythonImage = null
 node() {
     timeout(20) {
         init()
-        test()
+        try {
+            test()
+        } finally {
+            publishTestResults()
+        }
     }
 }
 
@@ -20,19 +24,23 @@ def init() {
 
         echo "Building python runtime image..."
         dir("ci-cd/images/python-runtime") {
-            pythonImage = docker.build("python-runtime:${env.BRANCH_NAME}${commitHash}")
+            pythonImage = docker.build("python-runtime:${env.BRANCH_NAME}")
         }
     }
 }
 
 def test() {
-    stage('test') {
+    stage('unit tests') {
         pythonImage.inside {
-            sh '''
-                pwd
-                ls -al
-                pytest
-            '''
+            withEnv(["PYTHONPATH=${pwd()}"]) {
+                sh 'pytest --junit-xml="pytest_results.xml"'
+            }
         }
+    }
+}
+
+def publishTestResults() {
+    stage('publish unit test results') {
+        junit 'pytest_results.xml'
     }
 }
