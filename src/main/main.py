@@ -1,10 +1,14 @@
-from src.main.LinkedList.node import Node
+from src.main.myMath import *
 
 
 def main():
-    node1 = Node(3)
+    first_num = 10
+    second_num = 20
 
-    print(node1.value)
+    print(f"{first_num} + {second_num} = {add(first_num, second_num)}")
+    print(f"{first_num} - {second_num} = {subtract(first_num, second_num)}")
+    print(f"{first_num} * {second_num} = {multiply(first_num, second_num)}")
+    print(f"{first_num} / {second_num} = {divide(first_num, second_num)}")
 
 
 main()

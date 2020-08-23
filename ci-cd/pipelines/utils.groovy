@@ -32,6 +32,7 @@ def stageWithGHStatusCheck(String stageName, Closure closureFunction) {
         stageStatus = 'success'
     } catch(exc) {
         stageStatus = 'failure'
+        currentBuild.result = 'FAILURE'
     } finally {
         setGHStatusCheck(stageName, stageStatus)
     }
