@@ -3,7 +3,7 @@ pythonImage = null
 
 node() {
     try {
-        timeout(20) {
+        timeout(30) {
             init()
             try {
                 parallel unittest: {
@@ -16,8 +16,9 @@ node() {
                 publishTestResults()
             }
 
-            pushImageToDockerHub()
+            deploy()
         }
+
         currentBuild.result = 'SUCCESS'
     } catch(e) {
         currentBuild.result = 'FAILURE'
@@ -39,7 +40,8 @@ def init() {
 
         echo "Building python runtime image..."
         dir("ci-cd/images/python-runtime") {
-            pythonImage = docker.build("python-runtime")
+            def tag = (env.BRANCH_NAME).replaceAll('/','-')
+            pythonImage = docker.build("python-runtime:${tag}")
         }
     }
 }
@@ -66,16 +68,15 @@ def publishTestResults() {
     }
 }
 
-def pushImageToDockerHub() {
-    utils.stageWithGHStatusCheck('push image') {
-        def appImageName = "sunnyredhu/ci-task:${commitHash}"
-        echo "Building image: ${appImageName}..."
-        def appImage = docker.build(appImageName)
-        echo "Done.\nPushing image: ${appImageName}..."
-        docker.withRegistry('', "sunny-dockerhub-credentials") {
-            appImage.push()
-        }
-        echo "Done."
+def deploy() {
+    stage('deploy') {
+        build (
+            job: 'ci-task-deployment',
+            parameters: [
+                string(name: 'COMMIT_TO_DEPLOY', value: commitHash),
+                string(name: 'BRANCH_NAME', value: env.BRANCH_NAME)
+            ]
+        )
     }
 }
 
