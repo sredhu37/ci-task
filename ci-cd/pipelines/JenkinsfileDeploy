@@ -19,7 +19,7 @@ def init() {
             parameters([
                 string(
                     defaultValue: 'master',
-                    description: 'Pass commitID to deploy. You can pass a branch name as well.',
+                    description: 'Pass commitID to deploy.',
                     name: 'COMMIT_TO_DEPLOY',
                     trim: true
                 ),
